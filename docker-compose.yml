@@ -1,0 +1,33 @@
+version: '3.9'
+services:
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    command: -jar DynamoDBLocal.jar -inMemory -sharedDb
+  db:
+    image: mysql:8.0.22
+#    volumes:
+#      - ./tmp/db:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+#      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+  web:
+    build: .
+    command: bundle exec rails s -p 3000 -b '0.0.0.0'
+    volumes:
+      - .:/myapp
+    ports:
+      - "3000:3000"
+    links:
+#      - db
+      - dynamodb-local
+    depends_on:
+      - db
+      - dynamodb-local
+    environment:
+      - AWS_ACCESS_KEY_ID='DUMMYIDEXAMPLE'
+      - AWS_SECRET_ACCESS_KEY='DUMMYEXAMPLEKEY'
+      - REGION='eu-west-1'
